@@ -18,6 +18,80 @@
       line-height: 1.6;
     }
 
+    /* Password Modal Overlay */
+    #auth-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(15, 23, 42, 0.85);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .auth-modal-card {
+      background: #ffffff;
+      padding: 35px 30px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .auth-modal-card h2 {
+      margin-top: 0;
+      color: #0066cc;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .auth-modal-card p {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .auth-input-group {
+      margin-bottom: 20px;
+    }
+    .auth-input-group input {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .auth-input-group input:focus {
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+    }
+    .auth-btn {
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .auth-btn:hover { background-color: #0052a3; }
+    .auth-error-msg {
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 10px;
+      font-weight: bold;
+      display: none;
+    }
+
     .form-card-container {
       background: #ffffff;
       border-radius: 12px;
@@ -128,7 +202,7 @@
       color: #334155;
       font-size: 14px;
     }
-    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="password"], select, textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #cbd5e1;
@@ -137,7 +211,7 @@
       font-size: 14px;
       transition: border-color 0.2s;
     }
-    input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+    input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="date"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #0066cc;
       box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
@@ -410,6 +484,19 @@
   </style>
 </head>
 <body>
+
+<!-- Password Authentication Modal -->
+<div id="auth-modal-overlay">
+  <div class="auth-modal-card">
+    <h2>🔒 パスワード認証</h2>
+    <p>セキュリティ認証が必要です。<br>本日の日付（数字8桁）を入力してください。<br><small style="color: #94a3b8;">例）2026年9月15日 → 20260915</small></p>
+    <div class="auth-input-group">
+      <input type="password" id="authPassword" placeholder="YYYYMMDD" maxlength="8" autocomplete="off" style="ime-mode: disabled;" oninput="convertToHalfWidth(this)" onkeypress="handleAuthKeyPress(event)">
+    </div>
+    <button type="button" class="auth-btn" onclick="checkPassword()">認証して進む</button>
+    <div id="authErrorMsg" class="auth-error-msg">パスワードが正しくありません</div>
+  </div>
+</div>
 
 <!-- Main Application Form -->
 <div id="form-container" class="form-card-container">
@@ -778,6 +865,36 @@
   let submittedApplicantEmail = '';
   const MAX_WORKERS = 10;
   const MAX_FIX_FILES = 5;
+
+  // --- Security / Password Authentication Logic ---
+  function getTodayJapanDateString() {
+    const now = new Date();
+    // 日本時間に合わせたYYYYMMDD文字列を取得
+    const jstDateStr = now.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' });
+    return jstDateStr.replace(/\//g, '');
+  }
+
+  function checkPassword() {
+    const inputPass = document.getElementById('authPassword').value.trim();
+    const correctPass = getTodayJapanDateString();
+    const errorMsg = document.getElementById('authErrorMsg');
+
+    if (inputPass === correctPass) {
+      document.getElementById('auth-modal-overlay').style.display = 'none';
+      errorMsg.style.display = 'none';
+    } else {
+      errorMsg.style.display = 'block';
+      document.getElementById('authPassword').value = '';
+      document.getElementById('authPassword').focus();
+    }
+  }
+
+  function handleAuthKeyPress(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkPassword();
+    }
+  }
 
   // 全角英数字・記号を自動的に半角へ変換する処理
   function convertToHalfWidth(inputElement) {
