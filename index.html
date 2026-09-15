@@ -6,7 +6,7 @@
   <title>作業員申請・修正フォーム</title>
   <style>
     body {
-      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
       background-color: #f4f7f9;
       color: #333;
       margin: 0;
@@ -25,6 +25,15 @@
       color: #0056b3;
       border-bottom: 2px solid #0056b3;
       padding-bottom: 8px;
+      font-size: 22px;
+    }
+    h3 {
+      font-size: 18px;
+      color: #333;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      padding-left: 10px;
+      border-left: 4px solid #0056b3;
     }
     .form-group {
       margin-bottom: 20px;
@@ -32,7 +41,8 @@
     label {
       display: block;
       font-weight: bold;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
+      font-size: 14px;
     }
     .badge-req {
       background: #e74c3c;
@@ -58,26 +68,30 @@
       box-sizing: border-box;
       font-size: 14px;
     }
-    button {
+    button[type="submit"] {
       background-color: #0056b3;
       color: #fff;
       border: none;
-      padding: 12px 20px;
+      padding: 14px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
+      font-weight: bold;
       width: 100%;
+      margin-top: 20px;
     }
-    button:hover {
+    button[type="submit"]:hover {
       background-color: #003d80;
     }
     .btn-back {
       background-color: #6c757d;
-      margin-bottom: 20px;
-      width: auto;
-      display: inline-block;
+      color: #fff;
+      border: none;
       padding: 8px 16px;
-      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-bottom: 15px;
     }
     .btn-back:hover {
       background-color: #5a6268;
@@ -88,8 +102,8 @@
     .worker-card {
       background: #f8f9fa;
       border: 1px solid #e9ecef;
-      padding: 15px;
-      border-radius: 5px;
+      padding: 20px;
+      border-radius: 6px;
       margin-bottom: 15px;
     }
   </style>
@@ -99,7 +113,7 @@
 <div class="container">
   <h2>作業員申請・修正フォーム</h2>
 
-  <!-- 1. 申請種別選択エリア -->
+  <!-- 1. 申請種別選択エリア（選択後は非表示になります） -->
   <div id="type-select-section" class="form-group">
     <label>申請種別を選択してください<span class="badge-req">必須</span></label>
     <select id="request-type-select" onchange="handleTypeSelect()">
@@ -118,10 +132,13 @@
 
     <form id="main-form" onsubmit="handleSubmit(event)">
       
-      <!-- 拠点名（新規以外で表示） -->
+      <!-- 拠点情報（新規以外で表示） -->
       <div id="location-group" class="form-group hidden">
-        <label>拠点名<span class="badge-req">必須</span></label>
-        <input type="text" id="location" placeholder="例：東京本社">
+        <h3>拠点情報</h3>
+        <div class="form-group">
+          <label>拠点名<span class="badge-req">必須</span></label>
+          <input type="text" id="location" placeholder="例：東京本社">
+        </div>
       </div>
 
       <!-- 作業員情報（新規・追加・削除フォーム） -->
@@ -192,6 +209,7 @@
 
       <!-- Action修正用項目 -->
       <div id="action-fix-group" class="form-group hidden">
+        <h3>Action修正内容</h3>
         <div class="form-group">
           <label>受付番号<span class="badge-req">必須</span></label>
           <input type="text" id="receiptNumber" placeholder="123456">
@@ -216,7 +234,7 @@
 </div>
 
 <script>
-  // ★重要：デプロイしたGASのWebアプリURLに差し替えてください
+  // ★重要：ご自身のGASのWebアプリURLに書き換えてください
   const GAS_WEB_APP_URL = "YOUR_GAS_WEB_APP_URL_HERE"; 
 
   let currentType = "";
@@ -227,11 +245,11 @@
     currentType = select.value;
     if (!currentType) return;
 
-    // 選択ドロップダウンエリアを非表示、フォームエリアを表示
+    // 選択エリアを非表示、フォームエリアを表示
     document.getElementById('type-select-section').classList.add('hidden');
     document.getElementById('form-section').classList.remove('hidden');
 
-    // 表示項目の切り替え処理
+    // 全セクションを一度非表示にしてセットアップ
     resetFormDisplay();
     
     if (currentType === '新規') {
@@ -252,13 +270,13 @@
     }
   }
 
-  // 戻るボタン処理
+  // 「戻る」ボタン選択時
   function goBackToSelect() {
-    // フォームを非表示、選択エリアを再表示
+    // フォームを非表示にし、種別選択エリアを表示
     document.getElementById('form-section').classList.add('hidden');
     document.getElementById('type-select-section').classList.remove('hidden');
     
-    // セレクトボックス初期化
+    // セレクトボックス値を初期化
     document.getElementById('request-type-select').value = "";
     currentType = "";
   }
@@ -281,7 +299,7 @@
     document.getElementById('action-fix-group').classList.add('hidden');
   }
 
-  // ファイルをBase64文字列に変換する関数
+  // ファイルBase64化
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       if (!file) resolve(null);
@@ -296,7 +314,7 @@
     });
   }
 
-  // フォーム送信処理
+  // 送信処理
   async function handleSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
@@ -320,10 +338,8 @@
         }
 
       } else {
-        // 新規・追加・削除
         payload.location = document.getElementById('location').value;
         
-        // 作業員情報収集
         const workerCards = document.querySelectorAll('.worker-card');
         payload.workers = [];
         workerCards.forEach(card => {
@@ -333,14 +349,13 @@
             postalCode: card.querySelector('.w-postal').value,
             phone: card.querySelector('.w-phone').value,
             email: card.querySelector('.w-email').value,
-            department: card.querySelector('.w-dept').value, // 任意
+            department: card.querySelector('.w-dept').value,
             carMaker: card.querySelector('.w-carMaker').value,
             carModel: card.querySelector('.w-carModel').value,
             carNumber: card.querySelector('.w-carNumber').value
           });
         });
 
-        // 新規申請時の添付ファイル処理
         if (currentType === '新規') {
           payload.file_doc = await fileToBase64(document.getElementById('file_doc').files[0]);
           payload.file_secret = await fileToBase64(document.getElementById('file_secret').files[0]);
@@ -349,7 +364,6 @@
         }
       }
 
-      // GASへのPOST送信
       const response = await fetch(GAS_WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
